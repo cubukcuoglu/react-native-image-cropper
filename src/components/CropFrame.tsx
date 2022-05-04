@@ -23,7 +23,7 @@ const CropFrame: FC = () => {
                         style={[styles.frameContainer]}>
                         <Frame.Box
                             {...frame}
-                            style={[styles.frameWrapper, frame?.style]}>
+                            style={frame?.style ?? styles.frameWrapper}>
                             {
                                 frame?.lines ?
                                     <Lines 

@@ -36,8 +36,6 @@ export default StyleSheet.create({
         alignItems: "center"
     },
     frameWrapper: {
-        borderWidth: DEFAULT_FRAME_LINE_WIDTH,
-        borderColor: DEFAULT_FRAME_BORDER_COLOR,
         width: "100%",
         aspectRatio: 3,
     },
