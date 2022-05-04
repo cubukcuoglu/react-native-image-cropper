@@ -32,7 +32,8 @@ import {
     IImageCropperCropImageResolve,
     IImageCropperMeasure,
     IImageCropperStatements,
-    IImageCropperImageError
+    IImageCropperImageError,
+    IImageCropperImageCropData
 } from "./types";
 import {
     DEFAULT_IMAGE_STATE,
@@ -43,7 +44,7 @@ import {
 export const Context = createContext<IImageCropperContext>({} as IImageCropperContext)
 
 const useHook = ({ props }: IImageCropperHook) => {
-    const { mode = DEFAULT_MODE, uri, frame, onChangeState } = props;
+    const { mode = DEFAULT_MODE, uri, frame, onChangeState, onHandleCropData } = props;
 
     const containerRef = useAnimatedRef<Animated.View>();
     const imageRef = useAnimatedRef<Animated.Image>();
@@ -138,6 +139,20 @@ const useHook = ({ props }: IImageCropperHook) => {
     })
 
     const cropImage = (): IImageCropperCropImageResolve => new Promise(async (resolve) => {
+        const { cropData, error } = await getCropData();
+
+        if (error) return resolve({ error });
+
+        if (!cropData) return resolve({ error: "We cannot process your transaction because the area to be cropped cannot be calculated." });
+
+        const handleCrop = onHandleCropData ? onHandleCropData(cropData) : cropData;
+
+        const imageUrl = await ImageEditor.cropImage(uri, handleCrop);
+
+        return resolve({ uri: imageUrl });
+    });
+
+    const getCropData = (): Promise<{ cropData?: IImageCropperImageCropData, error?: any }> => new Promise(async (resolve) => {
         const { width, height, error } = await getImageSize(uri);
 
         if (!width || !height) return resolve({ error: "The dimensions of the uploaded image could not be calculated" });
@@ -150,35 +165,29 @@ const useHook = ({ props }: IImageCropperHook) => {
         const horizontalRatio = width / imageMeasure.width;
         const verticalRatio = height / imageMeasure.height;
 
-        let imageUrl = await ImageEditor.cropImage(uri,
-            {
-                offset: {
-                    x: horizontalRatio * Math.max(containerMeasure.pageX - imageMeasure.pageX, 0),
-                    y: verticalRatio * Math.max(containerMeasure.pageY - imageMeasure.pageY, 0),
-                },
-                size: {
-                    width: horizontalRatio * Math.min(containerMeasure.width, imageMeasure.width),
-                    height: verticalRatio * Math.min(containerMeasure.height, imageMeasure.height)
-                }
+        const cropData: IImageCropperImageCropData = {
+            offset: {
+                x: horizontalRatio * Math.max(containerMeasure.pageX - imageMeasure.pageX, 0),
+                y: verticalRatio * Math.max(containerMeasure.pageY - imageMeasure.pageY, 0),
+            },
+            size: {
+                width: horizontalRatio * containerMeasure.width,
+                height: verticalRatio * containerMeasure.height
             }
-        )
+        };
 
-        if (!frame) return resolve({ uri: imageUrl });
-
-        imageUrl = await ImageEditor.cropImage(imageUrl,
-            {
-                offset: {
-                    x: horizontalRatio * frameRef.current.left.value,
-                    y: verticalRatio * frameRef.current.top.value,
-                },
-                size: {
-                    width: horizontalRatio * frameRef.current.width.value,
-                    height: verticalRatio * frameRef.current.height.value,
-                }
+        if (frame) {
+            cropData.offset = {
+                x: cropData.offset.x + horizontalRatio * frameRef.current.left.value,
+                y: cropData.offset.y + verticalRatio * frameRef.current.top.value,
+            };
+            cropData.size = {
+                width: horizontalRatio * frameRef.current.width.value,
+                height: verticalRatio * frameRef.current.height.value,
             }
-        )
+        }
 
-        return resolve({ uri: imageUrl });
+        resolve({ cropData });
     });
 
     const onFixScaleAndTranslate = () => {

@@ -5424,7 +5424,7 @@ react-native-codegen@^0.0.7:
 
 "react-native-frame@https://github.com/cubukcuoglu/react-native-frame.git":
   version "0.1.0"
-  resolved "https://github.com/cubukcuoglu/react-native-frame.git#b65bd1d9c6d58dd659989b2252af838dcd54243d"
+  resolved "https://github.com/cubukcuoglu/react-native-frame.git#51cc94185ae19c10a94d8e1742c11ab3dc0035ba"
 
 react-native-gesture-handler@^2.3.2:
   version "2.4.1"

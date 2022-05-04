@@ -15,6 +15,7 @@ import {
     TapGestureHandlerEventPayload,
 } from "react-native-gesture-handler";
 import Animated from "react-native-reanimated";
+import { ImageCropData } from "@react-native-community/image-editor";
 import {
     IFrameBoxProps,
     IFrameImperativeHandle
@@ -38,6 +39,7 @@ export interface IImageCropperProps {
     frame?: IImageCropperCropFrame;
     loading?: ActivityIndicatorProps;
     onChangeState?: (state: IImageCropperOnChangeStateEvent) => void;
+    onHandleCropData?: (cropData: IImageCropperImageCropData) => IImageCropperImageCropData;
 }
 
 export interface IImageCropperContainer {
@@ -125,3 +127,5 @@ export interface IImageCropperStatements {
 export interface IImageCropperOnChangeStateEvent extends IImageCropperStatements {
     state: IImageCropperStatements;
 }
+
+export type IImageCropperImageCropData = ImageCropData;

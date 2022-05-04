@@ -68,7 +68,9 @@ const App = () => {
               frame={{
                 style: {
                   minWidth: 100,
-                  minHeight: 50
+                  minHeight: 50,
+                  width: 210,
+                  height: 70
                 },
                 lines: {
                   x: 2,
