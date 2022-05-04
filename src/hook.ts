@@ -145,7 +145,7 @@ const useHook = ({ props }: IImageCropperHook) => {
 
         if (!cropData) return resolve({ error: "We cannot process your transaction because the area to be cropped cannot be calculated." });
 
-        const handleCrop = onHandleCropData ? onHandleCropData(cropData) : cropData;
+        const handleCrop = onHandleCropData ? await onHandleCropData(cropData) : cropData;
 
         const imageUrl = await ImageEditor.cropImage(uri, handleCrop);
 
