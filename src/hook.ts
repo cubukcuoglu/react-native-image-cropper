@@ -220,11 +220,14 @@ const useHook = ({ props }: IImageCropperHook) => {
 
         const newScale = isMaxScale ? 1 : limitScale;
 
+        const eventImageX = ((imageLayout.value.width / 2) * (scale.value - minScale) - (translateX.value * scale.value) + event.x) / scale.value;
+        const eventImageY = ((imageLayout.value.height / 2) * (scale.value - minScale) - (translateY.value * scale.value) + event.y) / scale.value;
+
         const isImageWidthSmaller = newScale * imageLayout.value.width < containerLayout.value.width;
         const isImageHeightSmaller = newScale * imageLayout.value.height < containerLayout.value.height;
 
-        const newTranslateX = ((imageLayout.value.width / 2 - event.x + translateX.value) * (newScale - scale.value)) / newScale;
-        const newTranslateY = ((imageLayout.value.height / 2 - event.y + translateY.value) * (newScale - scale.value)) / newScale;
+        const newTranslateX = ((newScale - minScale) / newScale) * (imageLayout.value.width / 2 - eventImageX) + (event.x - eventImageX) / newScale;
+        const newTranslateY = ((newScale - minScale) / newScale) * (imageLayout.value.height / 2 - eventImageY) + (event.y - eventImageY) / newScale;
 
         const limitTranslateX = (isMaxScale || isImageWidthSmaller) ? 0 : Math.max(Math.min(limitOffsetX, newTranslateX), -limitOffsetX);
         const limitTranslateY = (isMaxScale || isImageHeightSmaller) ? 0 : Math.max(Math.min(limitOffsetY, newTranslateY), -limitOffsetY);
