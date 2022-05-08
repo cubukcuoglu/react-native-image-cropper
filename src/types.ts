@@ -1,4 +1,4 @@
-import { ForwardedRef, ReactNode, RefObject } from "react";
+import { ReactNode, RefObject } from "react";
 import {
     ActivityIndicatorProps,
     ImageStyle,
@@ -14,7 +14,7 @@ import {
     PinchGestureHandlerEventPayload,
     TapGestureHandlerEventPayload,
 } from "react-native-gesture-handler";
-import Animated from "react-native-reanimated";
+import Animated, { SharedValue } from "react-native-reanimated";
 import { ImageCropData } from "@react-native-community/image-editor";
 import {
     IFrameBoxProps,
@@ -39,7 +39,7 @@ export interface IImageCropperProps {
     frame?: IImageCropperCropFrame;
     loading?: ActivityIndicatorProps;
     onChangeState?: (state: IImageCropperOnChangeStateEvent) => void;
-    onHandleCropData?: (cropData: IImageCropperImageCropData) => IImageCropperImageCropData;
+    onHandleCropData?: (cropData: IImageCropperImageCropData) => Promise<IImageCropperImageCropData>;
 }
 
 export interface IImageCropperContainer {
@@ -69,7 +69,7 @@ export type IImageCropperImageError = { message: string };
 
 export interface IImageCropperContext {
     mainProps: IImageCropperProps;
-    frameRef: ForwardedRef<IFrameImperativeHandle>;
+    frameRef: RefObject<IFrameImperativeHandle>;
     containerRef: RefObject<Animated.View>;
     frameContainerRef: RefObject<Animated.View>;
     imageRef: RefObject<Animated.Image>;
@@ -77,6 +77,11 @@ export interface IImageCropperContext {
     imageRatio: number | undefined;
     imageStatus: IImageCropperImageStatus;
     canVisible: any;
+    frameContainerWidth: SharedValue<number>;
+    frameContainerHeight: SharedValue<number>;
+    scale: SharedValue<number>;
+    translateX: SharedValue<number>;
+    translateY: SharedValue<number>;
     rWrapperStyle: StyleProp<ViewStyle>;
     rImageStyle: StyleProp<ImageStyle>;
     rFrameContainerStyle: StyleProp<ViewStyle>;
@@ -93,6 +98,15 @@ export interface IImageCropperContext {
 }
 
 export interface IImageCropperImperativeHandle {
+    containerRef: RefObject<Animated.View>;
+    imageRef: RefObject<Animated.Image>;
+    frameRef: RefObject<IFrameImperativeHandle>;
+    frameContainerRef: RefObject<Animated.View>;
+    frameContainerWidth: SharedValue<number>;
+    frameContainerHeight: SharedValue<number>;
+    scale: SharedValue<number>;
+    translateX: SharedValue<number>;
+    translateY: SharedValue<number>;
     cropImage: () => IImageCropperCropImageResolve;
 }
 

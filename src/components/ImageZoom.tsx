@@ -10,8 +10,8 @@ import {
 
 import styles from "../style";
 import { Context } from "../hook";
-import { CropFrame, Lines } from ".";
 import { DEFAULT_LOADING_COLOR, DEFAULT_LOADING_SIZE } from "../constants";
+import { CropFrame, Lines } from ".";
 
 const ImageZoom: FC = () => {
     const {

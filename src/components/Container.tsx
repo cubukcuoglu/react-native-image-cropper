@@ -8,7 +8,16 @@ const Container = forwardRef<IImageCropperImperativeHandle, IImageCropperProps>(
     const hook = useHook({ props });
 
     useImperativeHandle(ref, () => ({
-        cropImage: hook.cropImage
+        containerRef: hook.containerRef,
+        imageRef: hook.imageRef,
+        frameContainerRef: hook.frameContainerRef,
+        frameRef: hook.frameRef,
+        frameContainerWidth: hook.frameContainerWidth,
+        frameContainerHeight: hook.frameContainerHeight,
+        scale: hook.scale,
+        translateX: hook.translateX,
+        translateY: hook.translateY,
+        cropImage: hook.cropImage,
     }));
 
     return (

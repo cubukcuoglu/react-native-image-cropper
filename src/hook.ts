@@ -8,8 +8,6 @@ import Animated, {
     withTiming,
     withSpring,
     runOnJS,
-    runOnUI,
-    measure,
 } from "react-native-reanimated";
 import {
     PanGestureHandlerGestureEvent,
@@ -61,18 +59,20 @@ const useHook = ({ props }: IImageCropperHook) => {
     const containerLayout = useSharedValue<LayoutRectangle>({ width: 0, height: 0, x: 0, y: 0 });
     const imageLayout = useSharedValue<LayoutRectangle>({ width: 0, height: 0, x: 0, y: 0 });
 
-    const [imageStatus, setImageStatus] = useState<IImageCropperImageStatus>(DEFAULT_IMAGE_STATE);
     const [imageRatio, setImageRatio] = useState<number>(0);
     const [isDoubleZooming, setIsDoubleZooming] = useState(false);
 
-    const statements = useRef<IImageCropperStatements>(DEFAULT_STATEMENTS);
+    const [imageStatus, setImageStatusState] = useState<IImageCropperImageStatus>(DEFAULT_IMAGE_STATE);
+    const imageStatusRef = useRef<IImageCropperImageStatus>(DEFAULT_IMAGE_STATE);
 
-    const containerRatio = containerLayout.value.width / containerLayout.value.height;
+    const statements = useRef<IImageCropperStatements>(DEFAULT_STATEMENTS);
 
     const minScale = 1;
     const maxScale = 4;
 
     useEffect(() => {
+        setImageStatus(DEFAULT_IMAGE_STATE);
+
         getImageRatio();
     }, [uri]);
 
@@ -119,11 +119,9 @@ const useHook = ({ props }: IImageCropperHook) => {
     }
 
     const getMeasure = (ref: RefObject<any>): Promise<IImageCropperMeasure> => new Promise((resolve) => {
-        runOnUI(async () => {
-            "worklet";
-
-            runOnJS(resolve)(measure(ref));
-        })();
+        ref.current?.measure?.((x: number, y: number, width: number, height: number, pageX: number, pageY: number) => {
+            resolve({ x, y, width, height, pageX, pageY });
+        });
     });
 
     const getImageSize = (uri: string): Promise<{ width?: number, height?: number, error?: any }> => new Promise((resolve) => {
@@ -136,7 +134,12 @@ const useHook = ({ props }: IImageCropperHook) => {
                 resolve({ error })
             }
         );
-    })
+    });
+
+    const setImageStatus = (value: IImageCropperImageStatus) => {
+        imageStatusRef.current = value;
+        setImageStatusState(value)
+    }
 
     const cropImage = (): IImageCropperCropImageResolve => new Promise(async (resolve) => {
         const { cropData, error } = await getCropData();
@@ -160,7 +163,7 @@ const useHook = ({ props }: IImageCropperHook) => {
         if (error) return resolve({ error });
 
         const containerMeasure = await getMeasure(containerRef);
-        const imageMeasure = handleImageMeasure(await getMeasure(imageRef));
+        const imageMeasure = await getMeasure(imageRef);
 
         const horizontalRatio = width / imageMeasure.width;
         const verticalRatio = height / imageMeasure.height;
@@ -311,38 +314,38 @@ const useHook = ({ props }: IImageCropperHook) => {
         containerLayout.value = layout;
     }
 
-    const handleImageMeasure = (measure: IImageCropperMeasure): IImageCropperMeasure => {
-        const _imageRatio = measure.width / measure.height;
-
-        const width = _imageRatio > imageRatio ? (measure.height * imageRatio) : measure.width;
-        const height = _imageRatio > imageRatio ? measure.height : (measure.width / imageRatio);
-
-        const offsetWidth = (measure.width - width) / 2;
-        const offsetHeight = (measure.height - height) / 2;
-
-        return {
-            width,
-            height,
-            x: measure.x + offsetWidth,
-            y: measure.y + offsetHeight,
-            pageX: measure.pageX + offsetWidth,
-            pageY: measure.pageY + offsetHeight,
-        }
-    }
-
-    const onImageLayout = async (event: LayoutChangeEvent) => {
-        const layout = handleImageMeasure({ ...event.nativeEvent.layout, pageX: 0, pageY: 0 });
+    const onImageLayout = () => new Promise(async (resolve) => {
+        const layout = await getMeasure(imageRef);
 
         translateY.value = 0;
         translateX.value = 0;
 
+        layout.width = layout.width / scale.value;
+        layout.height = layout.height / scale.value;
+
+        scale.value = 1;
+
         imageLayout.value = layout;
 
-        frameContainerWidth.value = Math.min(layout.width * scale.value, containerLayout.value.width);
-        frameContainerHeight.value = Math.min(layout.height * scale.value, containerLayout.value.height);
-    }
+        frameContainerWidth.value = Math.min(layout.width, containerLayout.value.width);
+        frameContainerHeight.value = Math.min(layout.height, containerLayout.value.height);
 
-    const onImageLoad = () => setImageStatus({ isLoaded: true, error: undefined });
+        frameRef.current?.resetFrame?.();
+
+        resolve(true);
+    });
+
+    const onImageLoad = async () => {
+        if (imageStatusRef.current?.isLoaded) return;
+
+        scale.value = 1;
+        translateX.value = 0;
+        translateY.value = 0;
+
+        await onImageLayout();
+
+        setImageStatus({ isLoaded: true, error: undefined });
+    }
 
     const onImageError = (event: IImageCropperImageError) => {
         setImageStatus({ isLoaded: false, error: event });
@@ -379,12 +382,19 @@ const useHook = ({ props }: IImageCropperHook) => {
             ]
         }
 
-        if (!(imageRatio && Object.keys(containerLayout.value).length)) return style;
+        if (!imageRatio || !containerLayout.value.width) return style;
+
+        style.aspectRatio = imageRatio;
+
+        const containerRatio = containerLayout.value.width / containerLayout.value.height;
 
         if (mode === "center") {
-            style.width = containerLayout.value.width;
-            style.height = containerLayout.value.height;
-            style.resizeMode = "contain";
+            style.width = imageRatio > containerRatio ?
+                containerLayout.value.width :
+                containerLayout.value.height * imageRatio;
+            style.height = imageRatio > containerRatio ?
+                containerLayout.value.width / imageRatio :
+                containerLayout.value.height;
         } else {
             style.width = imageRatio > containerRatio ?
                 containerLayout.value.height * imageRatio :
@@ -392,7 +402,6 @@ const useHook = ({ props }: IImageCropperHook) => {
             style.height = imageRatio > containerRatio ?
                 containerLayout.value.height :
                 containerLayout.value.width / imageRatio;
-            style.aspectRatio = imageRatio;
         }
 
         return style;
@@ -422,6 +431,11 @@ const useHook = ({ props }: IImageCropperHook) => {
         imageRatio,
         imageStatus,
         canVisible,
+        frameContainerWidth,
+        frameContainerHeight,
+        scale,
+        translateX,
+        translateY,
         rWrapperStyle,
         rImageStyle,
         rFrameContainerStyle,

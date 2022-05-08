@@ -33,7 +33,7 @@ export default StyleSheet.create({
         height: "100%",
         backgroundColor: "transparent",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     frameWrapper: {
         width: "100%",
