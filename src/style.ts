@@ -1,7 +1,5 @@
 import { StyleSheet } from "react-native";
 
-import { DEFAULT_FRAME_LINE_WIDTH, DEFAULT_FRAME_BORDER_COLOR } from "./constants";
-
 export default StyleSheet.create({
     container: {
         flex: 1,

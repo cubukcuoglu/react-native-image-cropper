@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useRef, RefObject } from "react";
-import { LayoutChangeEvent, LayoutRectangle, Image, ImageStyle, ViewStyle } from "react-native";
+import { LayoutChangeEvent, LayoutRectangle, ImageStyle, ViewStyle } from "react-native";
 import Animated, {
     useAnimatedRef,
     useAnimatedGestureHandler,
@@ -19,6 +19,7 @@ import {
     GestureEventPayload,
 } from "react-native-gesture-handler";
 import ImageEditor from "@react-native-community/image-editor";
+import ImageSize from "react-native-image-size";
 import { IFrameImperativeHandle } from "react-native-frame";
 
 import {
@@ -124,16 +125,12 @@ const useHook = ({ props }: IImageCropperHook) => {
         });
     });
 
-    const getImageSize = (uri: string): Promise<{ width?: number, height?: number, error?: any }> => new Promise((resolve) => {
-        Image.getSize(
-            uri,
-            (width, height) => {
-                resolve({ width, height })
-            },
-            (error) => {
-                resolve({ error })
-            }
-        );
+    const getImageSize = (uri: string): Promise<{ width?: number, height?: number, error?: any }> => new Promise(async (resolve) => {
+        try {
+            resolve(await ImageSize.getSize(uri));
+        } catch (error) {
+            resolve({ error });
+        }
     });
 
     const setImageStatus = (value: IImageCropperImageStatus) => {

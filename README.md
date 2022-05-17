@@ -25,14 +25,13 @@ yarn add https://github.com/cubukcuoglu/react-native-image-cropper.git
 Make sure you have installed react native gesture handler > 2 and react native reanimated > 2.
 
 ```sh
-npm install https://github.com/cubukcuoglu/react-native-frame.git react-native-gesture-handler react-native-reanimated @react-native-community/image-editor
+npm install react-native-gesture-handler react-native-reanimated @react-native-community/image-editor react-native-image-size https://github.com/cubukcuoglu/react-native-frame.git
 ```
 
 or
 
 ```sh
-# yarn
-yarn add https://github.com/cubukcuoglu/react-native-frame.git react-native-gesture-handler react-native-reanimated @react-native-community/image-editor
+yarn add react-native-gesture-handler react-native-reanimated @react-native-community/image-editor react-native-image-size https://github.com/cubukcuoglu/react-native-frame.git
 ```
 
 ## Usage
