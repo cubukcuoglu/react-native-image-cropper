@@ -1,6 +1,6 @@
 {
   "name": "react-native-image-cropper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "image crop",
   "main": "lib/commonjs/index.js",
   "repository": "https://github.com/cubukcuoglu/react-native-image-cropper.git",
