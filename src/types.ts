@@ -23,7 +23,6 @@ import {
 
 export type IImageCropperPinchGestureContext = {
     scale: number;
-    lastScale: number;
 }
 
 export type IImageCropperPanGestureContext = {

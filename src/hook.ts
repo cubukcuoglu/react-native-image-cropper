@@ -247,18 +247,21 @@ const useHook = ({ props }: IImageCropperHook) => {
     const onPinchGestureEvent = useAnimatedGestureHandler<PinchGestureHandlerGestureEvent, IImageCropperPinchGestureContext>({
         onStart: (event, context) => {
             context.scale = scale.value;
-            context.lastScale = 1;
         },
         onActive: (event, context) => {
-            const offsetX = event.focalX - (imageLayout.value.width / 2);
-            const offsetY = event.focalY - (imageLayout.value.height / 2);
-            const offsetScale = context.lastScale - event.scale;
+            const eventScale = event.scale * event.scale;
 
-            translateX.value = translateX.value + (offsetScale * offsetX);
-            translateY.value = translateY.value + (offsetScale * offsetY);
-            scale.value = (context.scale * event.scale);
+            const newScale = (context.scale * eventScale);
 
-            context.lastScale = event.scale;
+            const eventImageX = ((imageLayout.value.width / 2) * (scale.value - minScale) - (translateX.value * scale.value) + event.focalX) / scale.value;
+            const eventImageY = ((imageLayout.value.height / 2) * (scale.value - minScale) - (translateY.value * scale.value) + event.focalY) / scale.value;
+
+            const newTranslateX = ((newScale - minScale) / newScale) * (imageLayout.value.width / 2 - eventImageX) + (event.focalX - eventImageX) / newScale;
+            const newTranslateY = ((newScale - minScale) / newScale) * (imageLayout.value.height / 2 - eventImageY) + (event.focalY - eventImageY) / newScale;
+
+            scale.value = newScale;
+            translateX.value = newTranslateX;
+            translateY.value = newTranslateY
         },
         onEnd: () => runOnJS(onFixScaleAndTranslate)()
     });
